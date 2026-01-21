@@ -1,9 +1,77 @@
-import { Mail, Linkedin, MapPin, Send } from "lucide-react";
+import { useState } from "react";
+import { Mail, Linkedin, MapPin, Send, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
+import emailjs from "@emailjs/browser";
+
+const EMAILJS_SERVICE_ID = "service_yavtk8z";
+const EMAILJS_TEMPLATE_ID = "template_22oayrd";
+const EMAILJS_PUBLIC_KEY = "fjza0Z0u9q1eEtwl3";
 
 const ContactSection = () => {
+  const { toast } = useToast();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    subject: "",
+    message: "",
+  });
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { id, value } = e.target;
+    setFormData((prev) => ({ ...prev, [id]: value }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    // Basic validation
+    if (!formData.name.trim() || !formData.email.trim() || !formData.message.trim()) {
+      toast({
+        title: "Missing Fields",
+        description: "Please fill in all required fields.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      await emailjs.send(
+        EMAILJS_SERVICE_ID,
+        EMAILJS_TEMPLATE_ID,
+        {
+          from_name: formData.name,
+          from_email: formData.email,
+          subject: formData.subject || "Contact Form Submission",
+          message: formData.message,
+        },
+        EMAILJS_PUBLIC_KEY
+      );
+
+      toast({
+        title: "Message Sent!",
+        description: "Thank you for reaching out. I'll get back to you soon.",
+      });
+
+      // Reset form
+      setFormData({ name: "", email: "", subject: "", message: "" });
+    } catch (error) {
+      console.error("EmailJS error:", error);
+      toast({
+        title: "Failed to Send",
+        description: "Something went wrong. Please try again later.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <section id="contact" className="py-20 lg:py-32 bg-muted/50">
       <div className="container mx-auto px-4 lg:px-8">
@@ -78,27 +146,33 @@ const ContactSection = () => {
               Send a Message
             </h3>
             
-            <form className="space-y-5">
+            <form onSubmit={handleSubmit} className="space-y-5">
               <div className="grid sm:grid-cols-2 gap-4">
                 <div>
                   <label htmlFor="name" className="block text-sm font-medium text-foreground mb-2">
-                    Your Name
+                    Your Name *
                   </label>
                   <Input
                     id="name"
                     placeholder="John Doe"
+                    value={formData.name}
+                    onChange={handleChange}
                     className="bg-muted border-border focus:border-primary"
+                    disabled={isSubmitting}
                   />
                 </div>
                 <div>
                   <label htmlFor="email" className="block text-sm font-medium text-foreground mb-2">
-                    Your Email
+                    Your Email *
                   </label>
                   <Input
                     id="email"
                     type="email"
                     placeholder="john@example.com"
+                    value={formData.email}
+                    onChange={handleChange}
                     className="bg-muted border-border focus:border-primary"
+                    disabled={isSubmitting}
                   />
                 </div>
               </div>
@@ -110,28 +184,44 @@ const ContactSection = () => {
                 <Input
                   id="subject"
                   placeholder="Project Inquiry"
+                  value={formData.subject}
+                  onChange={handleChange}
                   className="bg-muted border-border focus:border-primary"
+                  disabled={isSubmitting}
                 />
               </div>
 
               <div>
                 <label htmlFor="message" className="block text-sm font-medium text-foreground mb-2">
-                  Message
+                  Message *
                 </label>
                 <Textarea
                   id="message"
                   placeholder="Tell me about your project..."
                   rows={5}
+                  value={formData.message}
+                  onChange={handleChange}
                   className="bg-muted border-border focus:border-primary resize-none"
+                  disabled={isSubmitting}
                 />
               </div>
 
               <Button 
                 type="submit"
+                disabled={isSubmitting}
                 className="w-full accent-gradient border-0 text-accent-foreground font-semibold py-6 hover:opacity-90 transition-opacity"
               >
-                Send Message
-                <Send className="ml-2" size={18} />
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 animate-spin" size={18} />
+                    Sending...
+                  </>
+                ) : (
+                  <>
+                    Send Message
+                    <Send className="ml-2" size={18} />
+                  </>
+                )}
               </Button>
             </form>
           </div>
