@@ -7,8 +7,8 @@ import { useToast } from "@/hooks/use-toast";
 import emailjs from "@emailjs/browser";
 
 const EMAILJS_SERVICE_ID = "service_yavtk8z";
-const EMAILJS_TEMPLATE_ID = "template_22oayrd";
-const EMAILJS_PUBLIC_KEY = "fjza0Z0u9q1eEtwl3";
+const EMAILJS_TEMPLATE_ID = "template_q8ck9ei";
+const EMAILJS_PUBLIC_KEY = "CfpYCeJdlQB9XHHkt";
 
 const ContactSection = () => {
   const { toast } = useToast();
